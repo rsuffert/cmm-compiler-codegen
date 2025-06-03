@@ -186,7 +186,20 @@ exp :  NUM  { System.out.println("\tPUSHL $"+$1); }
 				System.out.println("\tDECL _"+$2);
 				System.out.println("\tPUSHL _"+$2);
 			 }	
-		
+	| exp '?' {
+					pRot.push(proxRot); proxRot += 2;
+					System.out.println("\tPOPL %EAX");
+					System.out.println("\tCMPL $0, %EAX");
+					System.out.printf("\tJE rot_%02d\n", pRot.peek());
+			  }
+	exp 	  {
+					System.out.printf("JMP rot_%02d\n", (int)pRot.peek()+1);
+					System.out.printf("rot_%02d:\n", pRot.peek());
+			  } 
+	':' exp   {
+					System.out.printf("rot_%02d:\n", (int)pRot.peek()+1);
+					pRot.pop();
+			  }
 	;							
 
 
