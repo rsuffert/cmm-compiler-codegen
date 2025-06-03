@@ -10,6 +10,7 @@
 %token WHILE,TRUE, FALSE, IF, ELSE
 %token EQ, LEQ, GEQ, NEQ 
 %token AND, OR
+%token INC, DEC
 
 %right '='
 %left OR
@@ -158,9 +159,26 @@ exp :  NUM  { System.out.println("\tPUSHL $"+$1); }
 		| exp NEQ exp		{ gcExpRel(NEQ); }											
 												
 		| exp OR exp		{ gcExpLog(OR); }											
-		| exp AND exp		{ gcExpLog(AND); }											
+		| exp AND exp		{ gcExpLog(AND); }	
+
+	| ID INC {
+				System.out.println("\tPUSHL _"+$1);
+				System.out.println("\tINCL _"+$1);
+			 }
+	| ID DEC {
+				System.out.println("\tPUSHL _"+$1);
+				System.out.println("\tDECL _"+$1);
+			 }
+	| INC ID {
+				System.out.println("\tINCL _"+$2);
+				System.out.println("\tPUSHL _"+$2);
+			 }
+	| DEC ID {
+				System.out.println("\tDECL _"+$2);
+				System.out.println("\tPUSHL _"+$2);
+			 }	
 		
-		;							
+	;							
 
 
 %%
