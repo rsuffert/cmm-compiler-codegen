@@ -2,7 +2,7 @@
 
 ARQ=`basename $1|sed "s/\.cmm//"`
 
-java Parser $ARQ.cmm >$ARQ.s
+java Parser $1 >$ARQ.s
 # 32 bits
 # as -o $ARQ.o $ARQ.s
 #ld -o $ARQ   $ARQ.o
