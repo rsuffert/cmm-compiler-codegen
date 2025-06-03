@@ -11,6 +11,7 @@
 %token EQ, LEQ, GEQ, NEQ 
 %token AND, OR
 %token INC, DEC
+%token ADDEQ
 
 %right '='
 %left OR
@@ -144,6 +145,14 @@ exp :  NUM  { System.out.println("\tPUSHL $"+$1); }
 					System.out.println("\tMOVL %EDX, _"+$1);
 					System.out.println("\tPUSHL %EDX");
 				 }
+	
+	| ID ADDEQ exp {
+						System.out.println("\tPOPL %EDX");
+						System.out.println("\tMOVL _"+$1+", %EAX");
+						System.out.println("\tADDL %EDX, %EAX");
+						System.out.println("\tMOVL %EAX, _"+$1);
+						System.out.println("\tPUSHL %EAX");
+				   }
      
 		| exp '+' exp		{ gcExpArit('+'); }
 		| exp '-' exp		{ gcExpArit('-'); }
