@@ -52,7 +52,7 @@ lcmd : lcmd cmd
 	   |
 	   ;
 	   
-cmd :  exp ';' // permitir qualquer expressao (inclusive sem efeito colateral, como "42;") como cmd
+cmd :  exp { System.out.println("\tPOPL %EAX"); } ';' // permitir qualquer expressao (inclusive sem efeito colateral, como "42;") como cmd
 			| '{' lcmd '}' { System.out.println("\t\t# terminou o bloco..."); }
 					     
 					       
