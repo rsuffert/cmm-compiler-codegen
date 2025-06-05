@@ -49,6 +49,8 @@ NL  = \n | \r | \r\n
 "{" |
 "}" |
 "," |
+"?" |
+":" |
 "\[" | 
 "\]"    { return (int) yycharat(0); }
 
@@ -62,6 +64,11 @@ NL  = \n | \r | \r\n
 
 "&&"   { return Parser.AND; }
 "||"   {  return Parser.OR; }
+
+"++"   { return Parser.INC; }
+"--"   { return Parser.DEC; }
+
+"+="   { return Parser.ADDEQ; }
 
 int    { return Parser.INT;     }
 float  { return Parser.FLOAT;   }

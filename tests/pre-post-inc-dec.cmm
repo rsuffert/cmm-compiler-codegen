@@ -1,0 +1,16 @@
+int a;
+int b;
+int c;
+int d;
+
+void main() {
+    a = 10;
+    b = a++;
+    c = ++a;
+    d = a-- + --b;
+
+    write("a: ", a);
+    write("b: ", b);
+    write("c: ", c);
+    write("d: ", d);
+}

@@ -10,6 +10,8 @@
 %token WHILE,TRUE, FALSE, IF, ELSE
 %token EQ, LEQ, GEQ, NEQ 
 %token AND, OR
+%token INC, DEC
+%token ADDEQ
 
 %right '='
 %left OR
@@ -50,9 +52,7 @@ lcmd : lcmd cmd
 	   |
 	   ;
 	   
-cmd :  ID '=' exp	';' {  System.out.println("\tPOPL %EDX");
-  						   System.out.println("\tMOVL %EDX, _"+$1);
-					     }
+cmd :  exp { System.out.println("\tPOPL %EAX"); } ';' // permitir qualquer expressao (inclusive sem efeito colateral, como "42;") como cmd
 			| '{' lcmd '}' { System.out.println("\t\t# terminou o bloco..."); }
 					     
 					       
@@ -140,6 +140,19 @@ exp :  NUM  { System.out.println("\tPUSHL $"+$1); }
  		| ID   { System.out.println("\tPUSHL _"+$1); }
     | '(' exp	')' 
     | '!' exp       { gcExpNot(); }
+	| ID '=' exp {
+					System.out.println("\tPOPL %EDX");
+					System.out.println("\tMOVL %EDX, _"+$1);
+					System.out.println("\tPUSHL %EDX");
+				 }
+	
+	| ID ADDEQ exp {
+						System.out.println("\tPOPL %EDX");
+						System.out.println("\tMOVL _"+$1+", %EAX");
+						System.out.println("\tADDL %EDX, %EAX");
+						System.out.println("\tMOVL %EAX, _"+$1);
+						System.out.println("\tPUSHL %EAX");
+				   }
      
 		| exp '+' exp		{ gcExpArit('+'); }
 		| exp '-' exp		{ gcExpArit('-'); }
@@ -155,9 +168,39 @@ exp :  NUM  { System.out.println("\tPUSHL $"+$1); }
 		| exp NEQ exp		{ gcExpRel(NEQ); }											
 												
 		| exp OR exp		{ gcExpLog(OR); }											
-		| exp AND exp		{ gcExpLog(AND); }											
-		
-		;							
+		| exp AND exp		{ gcExpLog(AND); }	
+
+	| ID INC {
+				System.out.println("\tPUSHL _"+$1);
+				System.out.println("\tINCL _"+$1);
+			 }
+	| ID DEC {
+				System.out.println("\tPUSHL _"+$1);
+				System.out.println("\tDECL _"+$1);
+			 }
+	| INC ID {
+				System.out.println("\tINCL _"+$2);
+				System.out.println("\tPUSHL _"+$2);
+			 }
+	| DEC ID {
+				System.out.println("\tDECL _"+$2);
+				System.out.println("\tPUSHL _"+$2);
+			 }	
+	| exp '?' {
+					pRot.push(proxRot); proxRot += 2;
+					System.out.println("\tPOPL %EAX");
+					System.out.println("\tCMPL $0, %EAX");
+					System.out.printf("\tJE rot_%02d\n", pRot.peek());
+			  }
+	exp 	  {
+					System.out.printf("JMP rot_%02d\n", (int)pRot.peek()+1);
+					System.out.printf("rot_%02d:\n", pRot.peek());
+			  } 
+	':' exp   {
+					System.out.printf("rot_%02d:\n", (int)pRot.peek()+1);
+					pRot.pop();
+			  }
+	;							
 
 
 %%

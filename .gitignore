@@ -34,7 +34,5 @@ Yylex*
 Parser*
 *.output
 
-# Binary (compiled) files
-*.o
-*.s
-[!*.]*
+# Binary (compiled) files and executables
+bin/
