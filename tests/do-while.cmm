@@ -1,0 +1,16 @@
+int a;
+int b;
+
+void main() {
+    a = 0;
+    do {
+        a++;
+    } while (a < 2);
+    write("a: ", a);
+
+    b = 0;
+    do {
+        b++;
+    } while (b < 0);
+    write("b: ", b);
+}
