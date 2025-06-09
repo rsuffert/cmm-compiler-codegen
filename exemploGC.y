@@ -13,13 +13,16 @@
 %token INC, DEC
 %token ADDEQ
 
-%right '='
+%right '=' ADDEQ
+%right '?' ':'
 %left OR
 %left AND
-%left  '>' '<' EQ LEQ GEQ NEQ
+%left EQ NEQ
+%left  '>' '<' LEQ GEQ
 %left '+' '-'
 %left '*' '/' '%'
-%left '!' 
+%right '!'
+%left INC DEC
 
 %type <sval> ID
 %type <sval> LIT
