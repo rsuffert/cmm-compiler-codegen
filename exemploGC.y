@@ -7,7 +7,7 @@
  
 
 %token ID, INT, FLOAT, BOOL, NUM, LIT, VOID, MAIN, READ, WRITE, IF, ELSE
-%token WHILE,TRUE, FALSE, IF, ELSE
+%token WHILE,TRUE, FALSE, IF, ELSE, DO
 %token EQ, LEQ, GEQ, NEQ 
 %token AND, OR
 %token INC, DEC
@@ -104,7 +104,20 @@ cmd :  exp { System.out.println("\tPOPL %EAX"); } ';' // permitir qualquer expre
 				  		System.out.printf("\tJMP rot_%02d   # terminou cmd na linha de cima\n", pRot.peek());
 							System.out.printf("rot_%02d:\n",(int)pRot.peek()+1);
 							pRot.pop();
-							}  
+							}
+
+	| DO {
+			pRot.push(proxRot); proxRot++;
+			System.out.printf("rot_%02d:\n", pRot.peek());
+		 }
+	 '{' cmd '}' 
+	 WHILE '(' exp ')' {
+							System.out.println("\tPOPL %EAX");
+							System.out.println("\tCMPL $1, %EAX");
+							System.out.printf("\tJE rot_%02d\n", pRot.peek());
+							pRot.pop();
+	 				   }
+	 ';'
 							
 			| IF '(' exp {	
 											pRot.push(proxRot);  proxRot += 2;
