@@ -22,7 +22,7 @@
 %left '+' '-'
 %left '*' '/' '%'
 %right '!'
-%left INC DEC // TODO: em C, pre e pos incremento possuem associatividades e precedencias diferentes!
+%left INC DEC
 
 %type <sval> ID
 %type <sval> LIT
