@@ -7,7 +7,8 @@
  
 
 %token ID, INT, FLOAT, BOOL, NUM, LIT, VOID, MAIN, READ, WRITE, IF, ELSE
-%token WHILE,TRUE, FALSE, IF, ELSE, DO
+%token WHILE,TRUE, FALSE, IF, ELSE, DO, FOR, CONTINUE, BREAK
+
 %token EQ, LEQ, GEQ, NEQ 
 %token AND, OR
 %token INC, DEC
@@ -54,7 +55,15 @@ type : INT    { $$ = INT; }
 lcmd : lcmd cmd
 	   |
 	   ;
-	   
+
+for_opt_exp: exp
+       | //se vazio, siga em frente com o for
+       ;
+
+for_cond: exp
+        | { System.out.println("\tPUSHL $1");}//se a condicao estiver vazia, siga em frente com o for como verdadeira
+        ;	   
+
 cmd :  exp { System.out.println("\tPOPL %EAX"); } ';' // permitir qualquer expressao (inclusive sem efeito colateral, como "42;") como cmd
 			| '{' lcmd '}' { System.out.println("\t\t# terminou o bloco..."); }
 					     
@@ -132,7 +141,46 @@ cmd :  exp { System.out.println("\tPOPL %EAX"); } ';' // permitir qualquer expre
 											System.out.printf("rot_%02d:\n",pRot.peek()+1);
 											pRot.pop();
 										}
-     ;
+	| FOR '('
+    for_opt_exp ';' //inicializador do for(sem label)
+    {
+        pRot.push(proxRot); proxRot += 4;//salva 4 labels na pilha (for_opt_exp(exp;;exp), for_cond(;exp;), cmd({}))
+        
+		System.out.printf("rot_%02d:\n", (int)pRot.peek() + 2);//mover para a posicao do for_cond
+    }
+    for_cond ';' //condicao do for
+    {
+        System.out.println("\tPOPL %EAX");//pop condicao 
+        
+		System.out.println("\tCMPL $0, %EAX");//compara com 0 a condicao do for
+
+        System.out.printf("\tJE rot_%02d\n", (int)pRot.peek() + 1);//jump equals,se falso, pula para o final do for
+
+        System.out.printf("\tJMP rot_%02d\n", (int)pRot.peek() + 3);//se verdadeiro, pula para o corpo do for
+
+        System.out.printf("rot_%02d:\n", pRot.peek());//pega o label do for_opt_exp(incrementador)
+    }
+    for_opt_exp ')' //incrementador do for
+    {
+        System.out.printf("\tJMP rot_%02d\n", (int)pRot.peek() + 2);//vai para o label do for_cond
+
+        System.out.printf("rot_%02d:\n", (int)pRot.peek() + 3);//pega o label do corpo do for
+    }
+    cmd //corpo do for
+    {
+        System.out.printf("\tJMP rot_%02d\n", pRot.peek());//vai para o label do for_opt_exp(incrementador)
+        
+        System.out.printf("rot_%02d:\n", (int)pRot.peek() + 1);//pega o label do final do for
+        
+		pRot.pop();//tira o label do incrementador da pilha
+    }
+	| BREAK ';' {
+        System.out.printf("\tJMP rot_%02d\n", (int)pRot.peek()+1);//vai para o label final do loop
+    }
+	| CONTINUE ';' {
+        System.out.printf("\tJMP rot_%02d\n", pRot.peek());//vai para o label do for_opt_exp(incrementador), ignora resto do loop
+    }
+    ;
      
      
 restoIf : ELSE  {

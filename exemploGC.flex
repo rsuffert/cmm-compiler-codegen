@@ -83,6 +83,10 @@ else   { return Parser.ELSE; }
 true   { return Parser.TRUE; }
 false   { return Parser.FALSE; }
 do     { return Parser.DO; }
+for    { return Parser.FOR; }
+break   { return Parser.BREAK; }
+continue { return Parser.CONTINUE; }
+
 
 
 
