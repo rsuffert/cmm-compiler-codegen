@@ -64,6 +64,9 @@ for_cond: exp
         | { System.out.println("\tPUSHL $1");}//se a condicao estiver vazia, siga em frente com o for como verdadeira
         ;	   
 
+do_cmd : '{' cmd '}' { System.out.printf("rot_%02d:\n", pRot.peek());} //separa o corpo do do-while do teste da condicao
+		;
+
 cmd :  exp { System.out.println("\tPOPL %EAX"); } ';' // permitir qualquer expressao (inclusive sem efeito colateral, como "42;") como cmd
 			| '{' lcmd '}' { System.out.println("\t\t# terminou o bloco..."); }
 					     
@@ -99,14 +102,10 @@ cmd :  exp { System.out.println("\tPOPL %EAX"); } ';' // permitir qualquer expre
 									System.out.println("\tMOVL %EAX, (%EDX)");
 									
 								}
-    /* TODO
-		- fix break and continue
-		- fix for
-		- fix while and do-while
-		add new Stack lpRot 
-	*/  
     | WHILE {
-					pRot.push(proxRot);  proxRot += 2;
+					pRot.push(proxRot); 
+					lpRot.push(proxRot);// estrutura de controle de loop
+					proxRot += 2;
 					System.out.printf("rot_%02d:\n",pRot.peek());
 				  } 
 			 '(' exp ')' {
@@ -118,20 +117,28 @@ cmd :  exp { System.out.println("\tPOPL %EAX"); } ';' // permitir qualquer expre
 				  		System.out.printf("\tJMP rot_%02d   # terminou cmd na linha de cima\n", pRot.peek());
 							System.out.printf("rot_%02d:\n",(int)pRot.peek()+1);
 							pRot.pop();
+							lpRot.pop(); //remove o label do loop
+							
 							}
 
-	| DO {
-			pRot.push(proxRot); proxRot++;
-			System.out.printf("rot_%02d:\n", pRot.peek());
+	| DO { //topo
+			pRot.push(proxRot); 
+			lpRot.push(proxRot);//estrutura de controle de loop
+			proxRot+=3;//para o continue, break e para o topo do loop 
+			System.out.printf("rot_%02d:\n", (int)pRot.peek()+2);//
 		 }
-	 '{' cmd '}' 
+	 do_cmd//ajuda a isolar o corpo para depuracao
 	 WHILE '(' exp ')' {
 							System.out.println("\tPOPL %EAX");
-							System.out.println("\tCMPL $1, %EAX");
-							System.out.printf("\tJE rot_%02d\n", pRot.peek());
-							pRot.pop();
+							System.out.println("\tCMPL $0, %EAX");//mais robusto e alinhado com C, 0 sendo falso e qualquer outro valor seria verdadeiro
+							System.out.printf("\tJNE rot_%02d\n", (int)pRot.peek()+2);//jump not equal, se for verdadeiro, vai para o topo do loop
 	 				   }
-	 ';'
+	 ';'{
+		System.out.printf("rot_%02d:\n", (int)pRot.peek() + 1);//termino do loop, label de fim
+		//limpa as pilhas
+		pRot.pop(); 
+		lpRot.pop();
+	 }
 							
 			| IF '(' exp {	
 											pRot.push(proxRot);  proxRot += 2;
@@ -149,7 +156,9 @@ cmd :  exp { System.out.println("\tPOPL %EAX"); } ';' // permitir qualquer expre
 	| FOR '('
     for_opt_exp ';' //inicializador do for(sem label)
     {
-        pRot.push(proxRot); proxRot += 4;//salva 4 labels na pilha (for_opt_exp(exp;;exp), for_cond(;exp;), cmd({}))
+        pRot.push(proxRot); 
+		lpRot.push(proxRot);//estrutura de controle de loop 
+		proxRot += 4;//salva 4 labels na pilha (for_opt_exp(exp;;exp), for_cond(;exp;), cmd({}))
         
 		System.out.printf("rot_%02d:\n", (int)pRot.peek() + 2);//mover para a posicao do for_cond
     }
@@ -176,14 +185,15 @@ cmd :  exp { System.out.println("\tPOPL %EAX"); } ';' // permitir qualquer expre
         System.out.printf("\tJMP rot_%02d\n", pRot.peek());//vai para o label do for_opt_exp(incrementador)
         
         System.out.printf("rot_%02d:\n", (int)pRot.peek() + 1);//pega o label do final do for
-        
-		pRot.pop();//tira o label do incrementador da pilha
+        //limpa as pilhas
+		pRot.pop();
+		lpRot.pop();
     }
 	| BREAK ';' {
-        System.out.printf("\tJMP rot_%02d\n", (int)pRot.peek()+1);//vai para o label final do loop
+        System.out.printf("\tJMP rot_%02d\n", (int)lpRot.peek()+1);//vai para o label final do loop, usa a pilha lpRot
     }
 	| CONTINUE ';' {
-        System.out.printf("\tJMP rot_%02d\n", pRot.peek());//vai para o label do for_opt_exp(incrementador), ignora resto do loop
+        System.out.printf("\tJMP rot_%02d\n", (int)lpRot.peek());//ignora resto do loop, usa a pilha lpRot
     }
     ;
      
@@ -282,6 +292,7 @@ exp :  NUM  { System.out.println("\tPUSHL $"+$1); }
   private ArrayList<String> strTab = new ArrayList<String>();
 
   private Stack<Integer> pRot = new Stack<Integer>();
+  private Stack<Integer> lpRot = new Stack<Integer>();
   private int proxRot = 1;
 
 
