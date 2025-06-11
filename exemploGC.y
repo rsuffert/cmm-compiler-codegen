@@ -99,7 +99,12 @@ cmd :  exp { System.out.println("\tPOPL %EAX"); } ';' // permitir qualquer expre
 									System.out.println("\tMOVL %EAX, (%EDX)");
 									
 								}
-         
+    /* TODO
+		- fix break and continue
+		- fix for
+		- fix while and do-while
+		add new Stack lpRot 
+	*/  
     | WHILE {
 					pRot.push(proxRot);  proxRot += 2;
 					System.out.printf("rot_%02d:\n",pRot.peek());
