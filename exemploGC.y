@@ -100,21 +100,19 @@ cmd :  exp { System.out.println("\tPOPL %EAX"); } ';' // permitir qualquer expre
 									
 								}
     | WHILE {
-					pRot.push(proxRot);//label do loop while 
 					lpRot.push(proxRot);// estrutura de controle de loop
 					proxRot += 2;
-					System.out.printf("rot_%02d:\n",pRot.peek());
+					System.out.printf("rot_%02d:\n",lpRot.peek());
 				  } 
 			 '(' exp ')' {
 			 							System.out.println("\tPOPL %EAX   # desvia se falso...");
 											System.out.println("\tCMPL $0, %EAX");
-											System.out.printf("\tJE rot_%02d\n", (int)pRot.peek()+1);
+											System.out.printf("\tJE rot_%02d\n", (int)lpRot.peek()+1);
 										} 
 				cmd		{
-				  		System.out.printf("\tJMP rot_%02d   # terminou cmd na linha de cima\n", pRot.peek());
-							System.out.printf("rot_%02d:\n",(int)pRot.peek()+1);
-							//limpa as pilhas para o break e continue
-							pRot.pop();
+				  		System.out.printf("\tJMP rot_%02d   # terminou cmd na linha de cima\n", lpRot.peek());
+							System.out.printf("rot_%02d:\n",(int)lpRot.peek()+1);
+							//limpa a pilha para o break e continue
 							lpRot.pop();
 							
 							}
