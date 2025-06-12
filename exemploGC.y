@@ -64,9 +64,6 @@ for_cond: exp
         | { System.out.println("\tPUSHL $1");}//se a condicao estiver vazia, siga em frente com o for como verdadeira
         ;	   
 
-do_cmd : '{' cmd '}' { System.out.printf("rot_%02d:\n", pRot.peek());} //separa o corpo do do-while do teste da condicao
-		;
-
 cmd :  exp { System.out.println("\tPOPL %EAX"); } ';' // permitir qualquer expressao (inclusive sem efeito colateral, como "42;") como cmd
 			| '{' lcmd '}' { System.out.println("\t\t# terminou o bloco..."); }
 					     
