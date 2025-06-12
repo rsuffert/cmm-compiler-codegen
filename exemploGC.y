@@ -120,20 +120,20 @@ cmd :  exp { System.out.println("\tPOPL %EAX"); } ';' // permitir qualquer expre
 							}
 
 	| DO { //topo
-			pRot.push(proxRot); 
+			pRot.push(proxRot);//label do loop do-while
 			lpRot.push(proxRot);//estrutura de controle de loop
-			proxRot+=3;//para o continue, break e para o topo do loop 
-			System.out.printf("rot_%02d:\n", (int)pRot.peek()+2);//
+			proxRot+=2;//para o continue e break(label topo DO e label de fim)
+			System.out.printf("rot_%02d:\n", pRot.peek());//
 		 }
-	 do_cmd//ajuda a isolar o corpo para depuracao
+	 '{' cmd '}'
 	 WHILE '(' exp ')' {
 							System.out.println("\tPOPL %EAX");
 							System.out.println("\tCMPL $0, %EAX");//mais robusto e alinhado com C, 0 sendo falso e qualquer outro valor seria verdadeiro
-							System.out.printf("\tJNE rot_%02d\n", (int)pRot.peek()+2);//jump not equal, se for verdadeiro, vai para o topo do loop
+							System.out.printf("\tJNE rot_%02d\n",pRot.peek());//jump not equal, se for verdadeiro, vai para o topo do loop
 	 				   }
 	 ';'{
 		System.out.printf("rot_%02d:\n", (int)pRot.peek() + 1);//termino do loop, label de fim
-		//limpa as pilhas
+		//limpa as pilhas para o break e continue
 		pRot.pop(); 
 		lpRot.pop();
 	 }
