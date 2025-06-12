@@ -150,11 +150,10 @@ cmd :  exp { System.out.println("\tPOPL %EAX"); } ';' // permitir qualquer expre
 	| FOR '('
     for_opt_exp ';' //inicializador do for(sem label)
     {
-        pRot.push(proxRot);//label do for loop
 		lpRot.push(proxRot);//estrutura de controle de loop 
 		proxRot += 4;//salva 4 labels na pilha (for_opt_exp(exp;;exp), for_cond(;exp;), cmd({}))
         
-		System.out.printf("rot_%02d:\n", (int)pRot.peek() + 2);//mover para a posicao do for_cond
+		System.out.printf("rot_%02d:\n", (int)lpRot.peek() + 2);//mover para a posicao do for_cond
     }
     for_cond ';' //condicao do for
     {
@@ -162,25 +161,24 @@ cmd :  exp { System.out.println("\tPOPL %EAX"); } ';' // permitir qualquer expre
         
 		System.out.println("\tCMPL $0, %EAX");//compara com 0 a condicao do for
 
-        System.out.printf("\tJE rot_%02d\n", (int)pRot.peek() + 1);//jump equals,se falso, pula para o final do for
+        System.out.printf("\tJE rot_%02d\n", (int)lpRot.peek() + 1);//jump equals,se falso, pula para o final do for
 
-        System.out.printf("\tJMP rot_%02d\n", (int)pRot.peek() + 3);//se verdadeiro, pula para o corpo do for
+        System.out.printf("\tJMP rot_%02d\n", (int)lpRot.peek() + 3);//se verdadeiro, pula para o corpo do for
 
-        System.out.printf("rot_%02d:\n", pRot.peek());//pega o label do for_opt_exp(incrementador)
+        System.out.printf("rot_%02d:\n", lpRot.peek());//pega o label do for_opt_exp(incrementador)
     }
     for_opt_exp ')' //incrementador do for
     {
-        System.out.printf("\tJMP rot_%02d\n", (int)pRot.peek() + 2);//vai para o label do for_cond
+        System.out.printf("\tJMP rot_%02d\n", (int)lpRot.peek() + 2);//vai para o label do for_cond
 
-        System.out.printf("rot_%02d:\n", (int)pRot.peek() + 3);//pega o label do corpo do for
+        System.out.printf("rot_%02d:\n", (int)lpRot.peek() + 3);//pega o label do corpo do for
     }
     cmd //corpo do for
     {
-        System.out.printf("\tJMP rot_%02d\n", pRot.peek());//vai para o label do for_opt_exp(incrementador)
+        System.out.printf("\tJMP rot_%02d\n", lpRot.peek());//vai para o label do for_opt_exp(incrementador)
         
-        System.out.printf("rot_%02d:\n", (int)pRot.peek() + 1);//pega o label do final do for
-        //limpa as pilhas para o break e continue
-		pRot.pop();
+        System.out.printf("rot_%02d:\n", (int)lpRot.peek() + 1);//pega o label do final do for
+        //limpa a pilha para o break e continue
 		lpRot.pop();
     }
 	| BREAK ';' {
