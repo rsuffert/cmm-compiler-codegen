@@ -38,4 +38,4 @@ This project contains only the code generation part of the compiler targeting th
 
 - Java Runtime Environment (JRE);
 - Make;
-- A x86 machine to execute the generated code.
+- An x86 machine to execute the generated code.
