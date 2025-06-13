@@ -21,7 +21,7 @@ This project contains only the code generation part of the compiler targeting th
 
 3. **Use the `run.x` script to generate code for a `.cmm` file (samples are available in the `tests/` folder):**
     ```bash
-    ./run.x <you-file>.cmm
+    ./run.x <your-file>.cmm
     ```
 
 4. **Execute the generated compiled binary (from the `bin` folder)**
