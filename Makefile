@@ -9,10 +9,7 @@ JAVAC  = javac
 
 all: Parser.class
 
-run: Parser.class
-	java Parser
 
-build: clean Parser.class
 
 clean:
 	rm -f *~ *.class *.o *.s Yylex.java Parser.java y.output
