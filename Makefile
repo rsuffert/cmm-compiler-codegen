@@ -18,8 +18,8 @@ clean:
 Parser.class: TS_entry.java TabSimb.java Yylex.java Parser.java
 	$(JAVAC) Parser.java
 
-Yylex.java: exemploGC.flex
-	$(JFLEX) exemploGC.flex
+Yylex.java: cmm.flex
+	$(JFLEX) cmm.flex
 
-Parser.java: exemploGC.y
-	$(BYACCJ) exemploGC.y
+Parser.java: cmm.y
+	$(BYACCJ) cmm.y
