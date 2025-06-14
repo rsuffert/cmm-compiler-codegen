@@ -65,9 +65,7 @@ for_cond: exp
         ;	   
 
 cmd :  exp { System.out.println("\tPOPL %EAX"); } ';' // permitir qualquer expressao (inclusive sem efeito colateral, como "42;") como cmd
-			| '{' lcmd '}' { System.out.println("\t\t# terminou o bloco..."); }
-					     
-					       
+
       | WRITE '(' LIT ')' ';' { strTab.add($3);
                                 System.out.println("\tMOVL $_str_"+strCount+"Len, %EDX"); 
 				System.out.println("\tMOVL $_str_"+strCount+", %ECX"); 
@@ -109,7 +107,7 @@ cmd :  exp { System.out.println("\tPOPL %EAX"); } ';' // permitir qualquer expre
 											System.out.println("\tCMPL $0, %EAX");
 											System.out.printf("\tJE rot_%02d\n", (int)lpRot.peek()+1);
 										} 
-				cmd		{
+				'{' lcmd '}'		{
 				  		System.out.printf("\tJMP rot_%02d   # terminou cmd na linha de cima\n", lpRot.peek());
 							System.out.printf("rot_%02d:\n",(int)lpRot.peek()+1);
 							//limpa a pilha para o break e continue
@@ -122,7 +120,7 @@ cmd :  exp { System.out.println("\tPOPL %EAX"); } ';' // permitir qualquer expre
 			proxRot+=2;//para o continue e break(label topo DO e label de fim)
 			System.out.printf("rot_%02d:\n", lpRot.peek());//
 		 }
-	 '{' cmd '}'
+	 '{' lcmd '}'
 	 WHILE '(' exp ')' {
 							System.out.println("\tPOPL %EAX");
 							System.out.println("\tCMPL $0, %EAX");//mais robusto e alinhado com C, 0 sendo falso e qualquer outro valor seria verdadeiro
@@ -141,7 +139,7 @@ cmd :  exp { System.out.println("\tPOPL %EAX"); } ';' // permitir qualquer expre
 											System.out.println("\tCMPL $0, %EAX");
 											System.out.printf("\tJE rot_%02d\n", pRot.peek());
 										}
-								')' cmd 
+								')' '{' lcmd '}'
 
              restoIf {
 											System.out.printf("rot_%02d:\n",pRot.peek()+1);
@@ -173,7 +171,7 @@ cmd :  exp { System.out.println("\tPOPL %EAX"); } ';' // permitir qualquer expre
 
         System.out.printf("rot_%02d:\n", (int)lpRot.peek() + 3);//pega o label do corpo do for
     }
-    cmd //corpo do for
+    '{' lcmd '}' //corpo do for
     {
         System.out.printf("\tJMP rot_%02d\n", lpRot.peek());//vai para o label do for_opt_exp(incrementador)
         
@@ -195,7 +193,7 @@ restoIf : ELSE  {
 											System.out.printf("rot_%02d:\n",pRot.peek());
 								
 										} 							
-							cmd  
+							'{' lcmd '}'  
 							
 							
 		| {

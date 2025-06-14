@@ -20,16 +20,18 @@ int main() {
             k = 0;
             do {
                 k++;
+                f += k;
             } while (k < j);
-            f += k;
             printf("k: %d\n", k);
+            printf("f: %d\n", f);
 
             k = 0;
             while(k < i) {
                 k++;
+                f += k;
             }
-            f += k;
             printf("k: %d\n", k);
+            printf("f: %d\n", f);
         }
     }
     printf("f: %d\n", f);
