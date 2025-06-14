@@ -1,0 +1,28 @@
+int a;
+int b;
+int c;
+int d;
+int e;
+
+void main() {
+   a=10;
+   
+   for (b = 0 ; b < a ; ) {
+      write("b: ", b);
+      break;
+   }
+   for(;c < a;){
+    c++;
+    write("c: ",c);
+   }
+    d=0;
+   for(e=10;;){
+    if(d == 100){
+        write("d: end ",d);
+        break;
+    }
+    d++;
+
+   }
+
+ }
