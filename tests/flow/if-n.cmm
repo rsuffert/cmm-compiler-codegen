@@ -1,0 +1,17 @@
+int a;
+int b;
+
+void main() {
+    a = 1;
+    b = 2;
+
+
+    if (a > b && a != 0) {
+        write("A is better");
+    } else {
+        write("B is better");
+    }
+
+    write("a: ", a);
+    write("b: ", b);
+}
