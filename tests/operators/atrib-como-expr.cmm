@@ -9,8 +9,8 @@ void main() {
     b = a + 2;
     a = (b = (c = 7) * 3) + 2;
 
-    write (" a (23)=  ", a );
-    write (" b (21)=  ", b );
-    write (" c (7)=  ", c );
+    write ("a (23)=", a );
+    write ("b (21)=", b );
+    write ("c (7)=", c );
 
 }
