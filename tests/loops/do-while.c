@@ -5,6 +5,7 @@ int b;
 
 int main() {
     a = 0;
+    b = 0;
     do {
         a++;
         b += 2;

@@ -3,6 +3,7 @@ int b;
 
 void main() {
     a = 0;
+    b = 0;
     do {
         a++;
         b += 2;
