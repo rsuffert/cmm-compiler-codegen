@@ -36,3 +36,7 @@ Parser*
 
 # Binary (compiled) files and executables
 bin/
+
+# C compiled and object files
+*
+*.o

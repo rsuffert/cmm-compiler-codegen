@@ -4,10 +4,13 @@ int a;
 int b;
 int c;
 
-void main() {
-    a = b = 3 * 4;
-    c = 415;
-    write("a: ", a);
-    write("b: ", b);
-    write("c: ", c);
+void main() {  
+    a = 1;
+    b = a + 2;
+    a = (b = (c = 7) * 3) + 2;
+
+    write (" a (23)=  ", a );
+    write (" b (21)=  ", b );
+    write (" c (7)=  ", c );
+
 }
