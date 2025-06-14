@@ -5,12 +5,16 @@ void main() {
     a = 0;
     do {
         a++;
+        b += 2;
     } while (a < 2);
     write("a: ", a);
+    write("b: ", b);
 
     b = 0;
     do {
+        a += 2;
         b++;
     } while (b < 0);
+    write("a: ", a);
     write("b: ", b);
 }

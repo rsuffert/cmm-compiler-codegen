@@ -18,16 +18,18 @@ void main() {
             k = 0;
             do {
                 k++;    
+                f += k;
             } while (k < j);
-            f += k;
             write("k: ", k);
+            write("f: ", f);
 
             k = 0;
             while(k < i) {
                 k++;
+                f += k;         
             }
-            f += k;
             write("k: ", k);
+            write("f: ", f);
         }
     }
     write("f: ", f);
