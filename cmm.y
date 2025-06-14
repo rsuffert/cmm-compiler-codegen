@@ -122,7 +122,7 @@ cmd :  exp { System.out.println("\tPOPL %EAX"); } ';' // permitir qualquer expre
 			proxRot+=2;//para o continue e break(label topo DO e label de fim)
 			System.out.printf("rot_%02d:\n", lpRot.peek());//
 		 }
-	 '{' cmd '}'
+	 cmd
 	 WHILE '(' exp ')' {
 							System.out.println("\tPOPL %EAX");
 							System.out.println("\tCMPL $0, %EAX");//mais robusto e alinhado com C, 0 sendo falso e qualquer outro valor seria verdadeiro
