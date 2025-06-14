@@ -8,8 +8,9 @@ This project contains only the code generation part of the compiler targeting th
 
 ## Requirements
 
-- Java Runtime Environment (JRE);
-- Make;
+- Java Runtime Environment (JRE) for compiling the CMM programs with `byaccj`;
+- `make` for seamless use of the compiler;
+- `gcc` for compiling the equivalent C programs to run the unit tests;
 - An x86 machine to execute the generated code.
 
 ## Usage Instructions
