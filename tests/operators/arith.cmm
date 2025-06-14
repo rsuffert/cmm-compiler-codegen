@@ -12,4 +12,3 @@ void main() {
     write (" c (14)=  ", c );
 
 }
-

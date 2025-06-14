@@ -12,7 +12,7 @@ void main() {
    }
    for(;;){
     c++;
-    write("c:",c);
+    write("c: ",c);
     break;
    }
     d=0;

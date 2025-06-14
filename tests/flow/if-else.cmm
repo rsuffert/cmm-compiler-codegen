@@ -1,0 +1,19 @@
+int a;
+int b;
+bool greater;
+
+void main() {
+    a = 10;
+    b = 11;
+
+    greater = a > b;
+
+    if (greater) {
+        write("GREATER!");
+    } else {
+        write("LESS!");
+    }
+
+    write("a: ", a);
+    write("b: ", b);
+}
