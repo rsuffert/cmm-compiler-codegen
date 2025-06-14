@@ -408,7 +408,7 @@ exp :  NUM  { System.out.println("\tPUSHL $"+$1); }
 	}
 
    private void geraInicio() {
-			System.out.println(".text\n\n#\t nome COMPLETO e matricula dos componentes do grupo...\n#\n"); 
+			System.out.println(".text\n\n#\t Ricardo B. Süffert (22103137-0) Gustavo L. Molina (20103003-8)\n#\n"); 
 			System.out.println(".GLOBL _start\n\n");  
    }
 

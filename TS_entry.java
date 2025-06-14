@@ -1,9 +1,9 @@
 
 /**
- * Write a description of class Paciente here.
+ * CMM - Compiler for C--
  * 
- * @author (your name) 
- * @version (a version number or a date)
+ * @authors Ricardo B. Süffert (22103137-0) Gustavo L. Molina (20103003-8)
+ * @version 1.0
  */
 public class TS_entry
 {
