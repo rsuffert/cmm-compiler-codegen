@@ -6,6 +6,12 @@ This project implements the code generation phase of a compiler for the CMM lang
 
 This project contains only the code generation part of the compiler targeting the x86 platform. Lexical, syntax, and semantic analyzers (which are cross-platform) are available in [this repository](https://github.com/rsuffert/cmm-compiler).
 
+## Requirements
+
+- Java Runtime Environment (JRE);
+- Make;
+- An x86 machine to execute the generated code.
+
 ## Usage Instructions
 
 1. **Clone the repository:**
@@ -34,8 +40,18 @@ This project contains only the code generation part of the compiler targeting th
     make clean
     ```
 
-## Requirements
+## Running unit tests
 
-- Java Runtime Environment (JRE);
-- Make;
-- An x86 machine to execute the generated code.
+1. **Run the tests:**
+    ```bash
+    make test
+    ```
+
+2. **Observe the output in the terminal.**
+   
+3. **(Optional) Clean all binary files:**
+    ```bash
+    make clean
+    ```
+
+**NOTICE:** You won't be able to run the unit tests on a non-x86 machine.
