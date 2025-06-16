@@ -1,0 +1,22 @@
+int n;
+int original;
+int reversed;
+int digit;
+
+void main() {
+    n = 123321;
+    original = n;
+    reversed = 0;
+
+    while (n > 0) {
+        digit = n % 10;
+        reversed = reversed * 10 + digit;
+        n = n / 10;
+    }
+
+    if (reversed == original) {
+        write("Is palindrome!");
+    } else {
+        write("Is not palindrome...");
+    }
+}

@@ -1,0 +1,21 @@
+int i;
+int n;
+bool isPrime;
+
+void main() {
+    n = 29;
+    isPrime = true;
+
+    for(i=2; i<n; i++) {
+        if (n % i == 0) {
+            isPrime = false;
+            break;
+        }
+    }
+
+    if (isPrime) {
+        write("The number is prime!");
+    } else {
+        write("The number is not prime...");
+    }
+}

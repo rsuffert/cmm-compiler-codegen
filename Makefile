@@ -54,7 +54,7 @@ test: all
 	done; \
 	echo "================= SUMMARY ================="; \
 	if [ $$pass -eq $$total ]; then \
-		echo "🎉🎉 All tests passed! 🎉🎉"; \
+		echo "🎉🎉 All tests passed! ($$pass/$$total) 🎉🎉"; \
 	else \
-		echo "⚠️⚠️ Some tests failed ⚠️⚠️"; \
+		echo "⚠️⚠️ Some tests failed ($$((total-pass))/$$total) ⚠️⚠️"; \
 	fi; \
