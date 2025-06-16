@@ -1,7 +1,6 @@
 #include <stdio.h>
 
 int num;
-int i;
 int div;
 int sum;
 int count;
