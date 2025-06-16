@@ -11,7 +11,7 @@ int main() {
     reversed = 0;
 
     while (n > 0) {
-        digit = digit % 10;
+        digit = n % 10;
         reversed = reversed * 10 + digit;
         n = n / 10;
     }
