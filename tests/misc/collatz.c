@@ -2,7 +2,7 @@
 
 int n;
 
-void main() {
+int main() {
     n = 13;
 
     while(n != 1) {
@@ -14,4 +14,6 @@ void main() {
         }
     }
     printf(" 1\n");
+
+    return 0;
 }

@@ -4,7 +4,7 @@ int n;
 int reversed;
 int digit;
 
-void main() {
+int main() {
     n = 1234;
     reversed = 0;
 
@@ -15,4 +15,6 @@ void main() {
     }
 
     printf("Reversed: %d\n", reversed);
+
+    return 0;
 }
