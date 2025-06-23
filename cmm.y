@@ -3,6 +3,8 @@
   import java.io.*;
   import java.util.ArrayList;
   import java.util.Stack;
+  import java.util.Map;
+  import java.util.HashMap;
 %}
  
 
@@ -51,7 +53,7 @@ func : FUNC type ID { ts.insert(new TS_entry($3, $2, TS_entry.Class.FUNC)); curr
 				// Step 5 (CALLEE - PROLOGUE): Set callee's frame (base) pointer to the top of the stack ($SP)
 				System.out.println("\tMOVL %ESP, %EBP");
 				// Step 6 (CALLEE - PROLOGUE): Allocate space for local vars
-				int localVarsCount = funcToLocalVarsCount.get($2);
+				int localVarsCount = ts.pesquisa($3).getLocalTS().getLocalVarsCount();
 				System.out.println("\tSUBL $" + (localVarsCount * VAR_SIZE_BYTES) + ", %ESP");
 			}
 			// Step 7 (CALLEE): Execute function body
@@ -77,7 +79,7 @@ returnStmt : RETURN exp ';' {
 							}
 		   ;
 
-mainF : VOID MAIN '(' ')'   { System.out.println("_start:"); }
+mainF : FUNC VOID MAIN '(' ')'   { System.out.println("_start:"); }
         '{' lcmd  { geraFinal(); } '}'
          ; 
 
@@ -99,11 +101,6 @@ decl : type ID ';' {
 							yyerror("(sem) variavel >" + $2 + "< jah declarada");
 						else
 							ts.insert(new TS_entry($2, $1, TS_entry.Class.GLOBAL_VAR));
-
-						funcToLocalVarsCount.put(
-							key,
-							funcToLocalVarsCount.getOrDefault(key, 0) + 1
-						);
 				   }
       ;
 
@@ -311,12 +308,12 @@ exp :  NUM  { System.out.println("\tPUSHL $"+$1); }
 				System.out.println("\tDECL " + varAddr);
 			 }
 	| INC ID {
-				String varAddr = getVarAddr($1);
+				String varAddr = getVarAddr($2);
 				System.out.println("\tINCL " + varAddr);
 				System.out.println("\tPUSHL " + varAddr);
 			 }
 	| DEC ID {
-				String varAddr = getVarAddr($1);
+				String varAddr = getVarAddr($2);
 				System.out.println("\tDECL " + varAddr);
 				System.out.println("\tPUSHL " + varAddr);
 			 }	
@@ -338,7 +335,7 @@ exp :  NUM  { System.out.println("\tPUSHL $"+$1); }
 								// Steps 2 and 3 (CALLER): Push return address to the stack and jump to the function label
 								System.out.println("\tCALL _" + $1);
 								// Step 11 (CALLER): Deallocate function arguments from the stack
-								int localVarsCount = funcToLocalVarsCount.get($1);
+								int localVarsCount = ts.pesquisa($1).getLocalTS().getLocalVarsCount();
 								System.out.println("\tADDL $" + (localVarsCount * VAR_SIZE_BYTES) + ", %ESP");
 						   }
 	|
@@ -362,7 +359,6 @@ lParamExp : exp ',' lParamExp { System.out.println("\tPUSHL $1"); }
   private Stack<Integer> pRot = new Stack<Integer>();
   private Stack<Integer> lpRot = new Stack<Integer>();
   private int proxRot = 1;
-  private Map<String, Integer> funcToLocalVarsCount = new HashMap<>();
   private final int VAR_SIZE_BYTES = 4;
 
   private String currFuncDecl;

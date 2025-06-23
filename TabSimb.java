@@ -40,6 +40,14 @@ public class TabSimb
             throw new IllegalArgumentException("Node is not a parameter");
         return paramsOffsets.getOrDefault(node.getId(), -1);
     }
+
+    public int getLocalVarsCount() {
+        return localVarsCount;
+    }
+
+    public int getParamsCount() {
+        return paramsCount;
+    }
     
     public void listar() {
       int cont = 0;  
