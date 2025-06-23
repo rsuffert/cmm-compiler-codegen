@@ -410,6 +410,8 @@ lParamExp : exp ',' lParamExp
 		// Step 11 (CALLER): Deallocate function arguments from the stack
 		int paramsCount = ts.pesquisa(funcName).getLocalTS().getParamsCount();
 		System.out.println("\tADDL $" + (paramsCount * VAR_SIZE_BYTES) + ", %ESP");
+		// Step 12 (CALLER): Push the return value onto the stack
+		System.out.println("\tPUSHL %EAX");
 	}
 
 	private void generateFuncCalleePrologueSteps(String funcName) {
