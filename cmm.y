@@ -306,9 +306,12 @@ exp :  NUM  { System.out.println("\tPUSHL $"+$1); }
 					System.out.printf("rot_%02d:\n", (int)pRot.peek()+1);
 					pRot.pop();
 			  }
-	| ID '(' lParamExp ')' { generateFuncCallerSteps($1); }
-	| ID '(' ')'           { generateFuncCallerSteps($1); }
+	| ID '(' lParamExpOrEmpty ')' { generateFuncCallerSteps($1); }
 	;							
+
+lParamExpOrEmpty : lParamExp
+				 |
+				 ;
 
 // Step 1 (CALLER): Push function arguments (right to left)
 lParamExp : exp ',' lParamExp
