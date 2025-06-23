@@ -266,20 +266,21 @@ restoIf : ELSE  {
 exp :  NUM  { System.out.println("\tPUSHL $"+$1); } 
     |  TRUE  { System.out.println("\tPUSHL $1"); } 
     |  FALSE  { System.out.println("\tPUSHL $0"); }      
- 		| ID   { System.out.println("\tPUSHL _"+$1); }
+ 		| ID   { System.out.println("\tPUSHL " + getVarAddr($1)); }
     | '(' exp	')' 
     | '!' exp       { gcExpNot(); }
 	| ID '=' exp {
 					System.out.println("\tPOPL %EDX");
-					System.out.println("\tMOVL %EDX, _"+$1);
+					System.out.println("\tMOVL %EDX, " + getVarAddr($1));
 					System.out.println("\tPUSHL %EDX");
 				 }
 	
 	| ID ADDEQ exp {
+						String varAddr = getVarAddr($1);
 						System.out.println("\tPOPL %EDX");
-						System.out.println("\tMOVL _"+$1+", %EAX");
+						System.out.println("\tMOVL " + varAddr + ", %EAX");
 						System.out.println("\tADDL %EDX, %EAX");
-						System.out.println("\tMOVL %EAX, _"+$1);
+						System.out.println("\tMOVL %EAX, " + varAddr);
 						System.out.println("\tPUSHL %EAX");
 				   }
      
@@ -300,20 +301,24 @@ exp :  NUM  { System.out.println("\tPUSHL $"+$1); }
 		| exp AND exp		{ gcExpLog(AND); }	
 
 	| ID INC {
-				System.out.println("\tPUSHL _"+$1);
-				System.out.println("\tINCL _"+$1);
+				String varAddr = getVarAddr($1);
+				System.out.println("\tPUSHL " + varAddr);
+				System.out.println("\tINCL " + varAddr);
 			 }
 	| ID DEC {
-				System.out.println("\tPUSHL _"+$1);
-				System.out.println("\tDECL _"+$1);
+				String varAddr = getVarAddr($1);
+				System.out.println("\tPUSHL " + varAddr);
+				System.out.println("\tDECL " + varAddr);
 			 }
 	| INC ID {
-				System.out.println("\tINCL _"+$2);
-				System.out.println("\tPUSHL _"+$2);
+				String varAddr = getVarAddr($1);
+				System.out.println("\tINCL " + varAddr);
+				System.out.println("\tPUSHL " + varAddr);
 			 }
 	| DEC ID {
-				System.out.println("\tDECL _"+$2);
-				System.out.println("\tPUSHL _"+$2);
+				String varAddr = getVarAddr($1);
+				System.out.println("\tDECL " + varAddr);
+				System.out.println("\tPUSHL " + varAddr);
 			 }	
 	| exp '?' {
 					pRot.push(proxRot); proxRot += 2;
@@ -410,6 +415,28 @@ lParamExp : exp ',' lParamExp { System.out.println("\tPUSHL $1"); }
 
   }
 
+		private String getVarAddr(String varName) {
+			if (currFuncDecl != null) {
+				// we're inside a function, so we should access the variable from
+				// its local symbol table instead of as a global
+				TS_entry funcEntry = ts.pesquisa(currFuncDecl);
+				TS_entry memberEntry = funcEntry.getLocalTS().pesquisa(varName);
+				if (memberEntry != null) {
+					if (memberEntry.getCls() == TS_entry.Class.PARAM) {
+						int idx = funcEntry.getLocalTS().getParamOffset(memberEntry);
+						int offset = 8 + VAR_SIZE_BYTES * idx;
+						return offset + "(%EBP)";
+					} else if (memberEntry.getCls() == TS_entry.Class.LOCAL_VAR) {
+						int idx = funcEntry.getLocalTS().getLocalVarOffset(memberEntry);
+						int offset = -VAR_SIZE_BYTES * (idx + 1);
+						return offset + "(%EBP)";
+					}
+				}
+			}
+
+			// accessing as a global
+			return "_" + varName;
+		}
 							
 		void gcExpArit(int oparit) {
  				System.out.println("\tPOPL %EBX");
