@@ -74,9 +74,9 @@ mainF : VOID MAIN '(' ')'   { System.out.println("_start:"); }
         '{' lcmd  { geraFinal(); } '}'
          ; 
 
-lVarDecl : decl lVarDecl | ;
+lVarDecl : varDecl lVarDecl | ;
 
-decl : type ID ';' { handleVarDecl($1, $2); }
+varDecl : type ID ';' { handleVarDecl($1, $2); }
      ;
 
 type : INT    { $$ = INT; }
