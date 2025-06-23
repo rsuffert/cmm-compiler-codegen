@@ -408,8 +408,8 @@ lParamExp : exp ',' lParamExp
 		// Steps 2 and 3 (CALLER): Push return address to the stack and jump to the function label
 		System.out.println("\tCALL _" + funcName);
 		// Step 11 (CALLER): Deallocate function arguments from the stack
-		int localVarsCount = ts.pesquisa(funcName).getLocalTS().getLocalVarsCount();
-		System.out.println("\tADDL $" + (localVarsCount * VAR_SIZE_BYTES) + ", %ESP");
+		int paramsCount = ts.pesquisa(funcName).getLocalTS().getParamsCount();
+		System.out.println("\tADDL $" + (paramsCount * VAR_SIZE_BYTES) + ", %ESP");
 	}
 
 	private void generateFuncCalleePrologueSteps(String funcName) {
