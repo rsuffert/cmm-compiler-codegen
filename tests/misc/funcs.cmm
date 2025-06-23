@@ -1,0 +1,19 @@
+int e;
+
+func int twoParams(int a, int b) {
+    int c;
+    int d;
+    c = 12;
+    d = 23;
+    e = 30;
+    write("a: ", a);
+    write("b: ", b);
+    write("c: ", c);
+    write("d: ", d);
+    write("e: ", e);
+    return 0;
+}
+
+void main() {
+    twoParams(2, 3);
+}
