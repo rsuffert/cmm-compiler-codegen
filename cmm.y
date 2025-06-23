@@ -45,17 +45,9 @@ lFunc : lFunc func
 func : FUNC type ID { ts.insert(new TS_entry($3, $2, TS_entry.Class.FUNC)); currFuncDecl = $3; }
 	   '(' lParamDecl ')'
 	   '{'
-	   		{ System.out.println("_" + $2 + ":"); } // function label
+	   		{ System.out.println("_" + $3 + ":"); } // function label
 	   		lVarDecl
-	   		{ 
-				// Step 4 (CALLEE - PROLOGUE): Save caller's frame (base) pointer in the stack
-				System.out.println("\tPUSHL %EBP");
-				// Step 5 (CALLEE - PROLOGUE): Set callee's frame (base) pointer to the top of the stack ($SP)
-				System.out.println("\tMOVL %ESP, %EBP");
-				// Step 6 (CALLEE - PROLOGUE): Allocate space for local vars
-				int localVarsCount = ts.pesquisa($3).getLocalTS().getLocalVarsCount();
-				System.out.println("\tSUBL $" + (localVarsCount * VAR_SIZE_BYTES) + ", %ESP");
-			}
+	   		{ generateFuncCalleePrologueSteps($3); }
 			// Step 7 (CALLEE): Execute function body
 	   		lcmd
 			returnStmt
@@ -63,23 +55,29 @@ func : FUNC type ID { ts.insert(new TS_entry($3, $2, TS_entry.Class.FUNC)); curr
 	   { currFuncDecl = null; }
 	 ;
 
-lParamDecl : lParamDecl type ID ','
-	   | type ID
-	   |
-	   ;
+lParamDecl : /* empty */
+           | lParamList
+lParamList : type ID {
+						TS_entry funcEntry = ts.pesquisa(currFuncDecl);
+						if (funcEntry != null) {
+							funcEntry.getLocalTS().insert(new TS_entry($2, $1, TS_entry.Class.PARAM));
+						}
+					 }
+           | lParamList ',' type ID {
+										TS_entry funcEntry = ts.pesquisa(currFuncDecl);
+										if (funcEntry != null) {
+											funcEntry.getLocalTS().insert(new TS_entry($4, $3, TS_entry.Class.PARAM));
+										}
+		   							}
 
 returnStmt : RETURN exp ';' {
 								System.out.println("\tPOPL %EAX"); // function return val
-								// Step 8 (CALLEE - EPILOGUE): Deallocate local vars from the stack
-								System.out.println("\tMOVL %EBP, %ESP");
-								// Step 9 (CALLEE - EPILOGUE): Restore caller's frame (base) pointer
-								System.out.println("\tPOPL %EBP");
-								// Step 10: Pop the return address from the stack and jump to it
-								System.out.println("\tRET");
+								generateFuncCalleeEpilogueSteps();
 							}
+		   | RETURN ';' { generateFuncCalleeEpilogueSteps(); }
 		   ;
 
-mainF : FUNC VOID MAIN '(' ')'   { System.out.println("_start:"); }
+mainF : VOID MAIN '(' ')'   { System.out.println("_start:"); }
         '{' lcmd  { geraFinal(); } '}'
          ; 
 
@@ -331,20 +329,13 @@ exp :  NUM  { System.out.println("\tPUSHL $"+$1); }
 					System.out.printf("rot_%02d:\n", (int)pRot.peek()+1);
 					pRot.pop();
 			  }
-	| ID '(' lParamExp ')' {	
-								// Steps 2 and 3 (CALLER): Push return address to the stack and jump to the function label
-								System.out.println("\tCALL _" + $1);
-								// Step 11 (CALLER): Deallocate function arguments from the stack
-								int localVarsCount = ts.pesquisa($1).getLocalTS().getLocalVarsCount();
-								System.out.println("\tADDL $" + (localVarsCount * VAR_SIZE_BYTES) + ", %ESP");
-						   }
-	|
+	| ID '(' lParamExp ')' { generateFuncCallerSteps($1); }
+	| ID '(' ')'           { generateFuncCallerSteps($1); }
 	;							
 
 // Step 1 (CALLER): Push function arguments (right to left)
-lParamExp : exp ',' lParamExp { System.out.println("\tPUSHL $1"); }
-		  | exp               { System.out.println("\tPUSHL $1"); }
-		  |
+lParamExp : exp ',' lParamExp
+		  | exp
 		  ;
 
 %%
@@ -411,28 +402,57 @@ lParamExp : exp ',' lParamExp { System.out.println("\tPUSHL $1"); }
 
   }
 
-		private String getVarAddr(String varName) {
-			if (currFuncDecl != null) {
-				// we're inside a function, so we should access the variable from
-				// its local symbol table instead of as a global
-				TS_entry funcEntry = ts.pesquisa(currFuncDecl);
-				TS_entry memberEntry = funcEntry.getLocalTS().pesquisa(varName);
-				if (memberEntry != null) {
-					if (memberEntry.getCls() == TS_entry.Class.PARAM) {
-						int idx = funcEntry.getLocalTS().getParamOffset(memberEntry);
-						int offset = 8 + VAR_SIZE_BYTES * idx;
-						return offset + "(%EBP)";
-					} else if (memberEntry.getCls() == TS_entry.Class.LOCAL_VAR) {
-						int idx = funcEntry.getLocalTS().getLocalVarOffset(memberEntry);
-						int offset = -VAR_SIZE_BYTES * (idx + 1);
-						return offset + "(%EBP)";
-					}
+	private String getVarAddr(String varName) {
+		if (currFuncDecl != null) {
+			// we're inside a function, so we should access the variable from
+			// its local symbol table instead of as a global
+			TS_entry funcEntry = ts.pesquisa(currFuncDecl);
+			TS_entry memberEntry = funcEntry.getLocalTS().pesquisa(varName);
+			if (memberEntry != null) {
+				if (memberEntry.getCls() == TS_entry.Class.PARAM) {
+					int idx = funcEntry.getLocalTS().getParamIdx(memberEntry);
+					int totalParams = funcEntry.getLocalTS().getParamsCount();
+					int reversedIdx = totalParams - idx - 1;
+					int offset = 8 + VAR_SIZE_BYTES * reversedIdx;
+					return offset + "(%EBP)";
+				} else if (memberEntry.getCls() == TS_entry.Class.LOCAL_VAR) {
+					int idx = funcEntry.getLocalTS().getLocalVarIdx(memberEntry);
+					int offset = -VAR_SIZE_BYTES * (idx + 1);
+					return offset + "(%EBP)";
 				}
 			}
-
-			// accessing as a global
-			return "_" + varName;
 		}
+
+		// accessing as a global
+		return "_" + varName;
+	}
+
+	private void generateFuncCallerSteps(String funcName) {
+		// Steps 2 and 3 (CALLER): Push return address to the stack and jump to the function label
+		System.out.println("\tCALL _" + funcName);
+		// Step 11 (CALLER): Deallocate function arguments from the stack
+		int localVarsCount = ts.pesquisa(funcName).getLocalTS().getLocalVarsCount();
+		System.out.println("\tADDL $" + (localVarsCount * VAR_SIZE_BYTES) + ", %ESP");
+	}
+
+	private void generateFuncCalleePrologueSteps(String funcName) {
+		// Step 4 (CALLEE - PROLOGUE): Save caller's frame (base) pointer in the stack
+		System.out.println("\tPUSHL %EBP");
+		// Step 5 (CALLEE - PROLOGUE): Set callee's frame (base) pointer to the top of the stack ($SP)
+		System.out.println("\tMOVL %ESP, %EBP");
+		// Step 6 (CALLEE - PROLOGUE): Allocate space for local vars
+		int localVarsCount = ts.pesquisa(funcName).getLocalTS().getLocalVarsCount();
+		System.out.println("\tSUBL $" + (localVarsCount * VAR_SIZE_BYTES) + ", %ESP");
+	}
+
+	private void generateFuncCalleeEpilogueSteps() {
+		// Step 8 (CALLEE - EPILOGUE): Deallocate local vars from the stack
+		System.out.println("\tMOVL %EBP, %ESP");
+		// Step 9 (CALLEE - EPILOGUE): Restore caller's frame (base) pointer
+		System.out.println("\tPOPL %EBP");
+		// Step 10 (CALLEE - EPILOGUE): Pop the return address from the stack and jump to it
+		System.out.println("\tRET");
+	}
 							
 		void gcExpArit(int oparit) {
  				System.out.println("\tPOPL %EBX");

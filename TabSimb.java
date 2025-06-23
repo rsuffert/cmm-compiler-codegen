@@ -29,13 +29,13 @@ public class TabSimb
         paramsOffsets.put(nodo.getId(), paramsCount++);
     }
 
-    public int getLocalVarOffset(TS_entry node) {
+    public int getLocalVarIdx(TS_entry node) {
         if (node.getCls() != TS_entry.Class.LOCAL_VAR)
             throw new IllegalArgumentException("Node is not a local variable");
         return localVarsOffsets.getOrDefault(node.getId(), -1);
     }
 
-    public int getParamOffset(TS_entry node) {
+    public int getParamIdx(TS_entry node) {
         if (node.getCls() != TS_entry.Class.PARAM)
             throw new IllegalArgumentException("Node is not a parameter");
         return paramsOffsets.getOrDefault(node.getId(), -1);
