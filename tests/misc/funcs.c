@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 int e;
+int f;
 
 int twoParams(int a, int b) {
     int c;
@@ -13,10 +14,13 @@ int twoParams(int a, int b) {
     printf("c: %d\n", c);
     printf("d: %d\n", d);
     printf("e: %d\n", e);
+    printf("f: %d\n", f);
     return 0;
 }
 
 int main() {
+    f = 50;
     twoParams(2, 3);
+    printf("End of program!\n");
     return 0;
 }
