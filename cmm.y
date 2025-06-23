@@ -40,7 +40,8 @@ lFunc : lFunc func
 	  |
 	  ;
 
-func : FUNC type ID '(' lParamDecl ')'
+func : FUNC type ID { ts.insert(new TS_entry($3, $2, TS_entry.Class.FUNC)); currFuncDecl = $3; }
+	   '(' lParamDecl ')'
 	   '{'
 	   		{ System.out.println("_" + $2 + ":"); } // function label
 	   		lVarDecl
@@ -57,6 +58,7 @@ func : FUNC type ID '(' lParamDecl ')'
 	   		lcmd
 			returnStmt
 	   '}'
+	   { currFuncDecl = null; }
 	 ;
 
 lParamDecl : lParamDecl type ID ','
@@ -81,10 +83,22 @@ mainF : VOID MAIN '(' ')'   { System.out.println("_start:"); }
 
 lVarDecl : decl lVarDecl | ;
 
-decl : type ID ';' {  	TS_entry nodo = ts.pesquisa($2);
-						if (nodo != null) 
+decl : type ID ';' {
+						if (currFuncDecl != null) {
+							// the declaration is happening inside a func, so we try to add
+							// the variable to the function's local symbol table
+							TS_entry funcEntry = ts.pesquisa(currFuncDecl);
+							if (funcEntry.getLocalTS().pesquisa($2) == null)
+								funcEntry.getLocalTS().insert(
+									new TS_entry($2, $1, TS_entry.Class.LOCAL_VAR)
+								);
+							else
+								yyerror("(sem) variavel >" + $2 + "< jah declarada");
+						}
+						else if (ts.pesquisa($2) != null)
 							yyerror("(sem) variavel >" + $2 + "< jah declarada");
-						else ts.insert(new TS_entry($2, $1)); 
+						else
+							ts.insert(new TS_entry($2, $1, TS_entry.Class.GLOBAL_VAR));
 
 						funcToLocalVarsCount.put(
 							key,
@@ -345,6 +359,8 @@ lParamExp : exp ',' lParamExp { System.out.println("\tPUSHL $1"); }
   private int proxRot = 1;
   private Map<String, Integer> funcToLocalVarsCount = new HashMap<>();
   private final int VAR_SIZE_BYTES = 4;
+
+  private String currFuncDecl;
 
   public static int ARRAY = 100;
 

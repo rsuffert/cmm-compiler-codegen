@@ -7,23 +7,23 @@
  */
 public class TS_entry
 {
+   public enum Class { FUNC, PARAM, LOCAL_VAR, GLOBAL_VAR }
+   
    private String id;
    private int tipo;
-   private int nElem;
-   private int tipoBase;
+   private Class cls;
 
+   // Functions
+   private TabSimb localTS;
 
-   public TS_entry(String umId, int umTipo, int ne, int umTBase) {
-      id = umId;
-      tipo = umTipo;
-      nElem = ne;
-      tipoBase = umTBase;
+   // Constructor for global variables and functions
+   public TS_entry(String umId, int umTipo, Class cls) {
+      this.id = umId;
+      this.tipo = umTipo; 
+      this.cls = cls;
+      
+      if (cls == Class.FUNC) this.localTS = new TabSimb();
    }
-
-   public TS_entry(String umId, int umTipo) {
-      this(umId, umTipo, -1, -1);
-   }
-
 
    public String getId() {
        return id; 
@@ -32,19 +32,19 @@ public class TS_entry
    public int getTipo() {
        return tipo; 
    }
-   
-   public int getNumElem() {
-       return nElem; 
+
+   public TabSimb getLocalTS() {
+        if (cls != Class.FUNC)
+            throw new IllegalStateException("This entry is not a function");
+        return localTS;
    }
 
-   public int getTipoBase() {
-       return tipoBase; 
-   }
-
+    public Class getCls() {
+         return cls; 
+    }
    
    public String toString() {
-       String aux = (nElem != -1) ? "\t array(" + nElem + "): "+tipoBase : "";
-       return "Id: " + id + "\t tipo: " + tipo + aux;
+         return String.format("TS_entry{id=%s, tipo=%d, cls=%s}", id, tipo, cls);
    }
 
 
