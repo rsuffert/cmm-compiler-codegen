@@ -3,11 +3,14 @@
   import java.io.*;
   import java.util.ArrayList;
   import java.util.Stack;
+  import java.util.Map;
+  import java.util.HashMap;
 %}
  
 
 %token ID, INT, FLOAT, BOOL, NUM, LIT, VOID, MAIN, READ, WRITE, IF, ELSE
 %token WHILE,TRUE, FALSE, IF, ELSE, DO, FOR, CONTINUE, BREAK
+%token FUNC, RETURN
 
 %token EQ, LEQ, GEQ, NEQ 
 %token AND, OR
@@ -33,19 +36,48 @@
 
 %%
 
-prog : { geraInicio(); } dList mainF { geraAreaDados(); geraAreaLiterais(); } ;
+prog : { geraInicio(); } lVarDecl lFunc mainF { geraAreaDados(); geraAreaLiterais(); } ;
+
+lFunc : lFunc func
+	  |
+	  ;
+
+func : FUNC type ID { ts.insert(new TS_entry($3, $2, TS_entry.Class.FUNC)); currFuncDecl = $3; }
+	   '(' lParamDeclOrEmpty ')'
+	   '{'
+	   		{ System.out.println("_" + $3 + ":"); } // function label
+	   		lVarDecl
+	   		{ generateFuncCalleePrologueSteps($3); }
+			// Step 7 (CALLEE): Execute function body
+	   		lcmd
+			returnStmt
+	   '}'
+	   { currFuncDecl = null; }
+	 ;
+
+lParamDeclOrEmpty : lParamDecl
+           		  |
+		   		  ;
+
+lParamDecl : type ID                { handleParamDecl($1, $2); }
+           | lParamDecl ',' type ID { handleParamDecl($3, $4); }
+		   ;
+
+returnStmt : RETURN exp ';' {
+								System.out.println("\tPOPL %EAX"); // function return val
+								generateFuncCalleeEpilogueSteps();
+							}
+		   | RETURN ';' { generateFuncCalleeEpilogueSteps(); }
+		   ;
 
 mainF : VOID MAIN '(' ')'   { System.out.println("_start:"); }
         '{' lcmd  { geraFinal(); } '}'
          ; 
 
-dList : decl dList | ;
+lVarDecl : varDecl lVarDecl | ;
 
-decl : type ID ';' {  TS_entry nodo = ts.pesquisa($2);
-    	                if (nodo != null) 
-                            yyerror("(sem) variavel >" + $2 + "< jah declarada");
-                        else ts.insert(new TS_entry($2, $1)); }
-      ;
+varDecl : type ID ';' { handleVarDecl($1, $2); }
+     ;
 
 type : INT    { $$ = INT; }
      | FLOAT  { $$ = FLOAT; }
@@ -206,20 +238,21 @@ restoIf : ELSE  {
 exp :  NUM  { System.out.println("\tPUSHL $"+$1); } 
     |  TRUE  { System.out.println("\tPUSHL $1"); } 
     |  FALSE  { System.out.println("\tPUSHL $0"); }      
- 		| ID   { System.out.println("\tPUSHL _"+$1); }
+ 		| ID   { System.out.println("\tPUSHL " + getVarAddr($1)); }
     | '(' exp	')' 
     | '!' exp       { gcExpNot(); }
 	| ID '=' exp {
 					System.out.println("\tPOPL %EDX");
-					System.out.println("\tMOVL %EDX, _"+$1);
+					System.out.println("\tMOVL %EDX, " + getVarAddr($1));
 					System.out.println("\tPUSHL %EDX");
 				 }
 	
 	| ID ADDEQ exp {
+						String varAddr = getVarAddr($1);
 						System.out.println("\tPOPL %EDX");
-						System.out.println("\tMOVL _"+$1+", %EAX");
+						System.out.println("\tMOVL " + varAddr + ", %EAX");
 						System.out.println("\tADDL %EDX, %EAX");
-						System.out.println("\tMOVL %EAX, _"+$1);
+						System.out.println("\tMOVL %EAX, " + varAddr);
 						System.out.println("\tPUSHL %EAX");
 				   }
      
@@ -240,20 +273,24 @@ exp :  NUM  { System.out.println("\tPUSHL $"+$1); }
 		| exp AND exp		{ gcExpLog(AND); }	
 
 	| ID INC {
-				System.out.println("\tPUSHL _"+$1);
-				System.out.println("\tINCL _"+$1);
+				String varAddr = getVarAddr($1);
+				System.out.println("\tPUSHL " + varAddr);
+				System.out.println("\tINCL " + varAddr);
 			 }
 	| ID DEC {
-				System.out.println("\tPUSHL _"+$1);
-				System.out.println("\tDECL _"+$1);
+				String varAddr = getVarAddr($1);
+				System.out.println("\tPUSHL " + varAddr);
+				System.out.println("\tDECL " + varAddr);
 			 }
 	| INC ID {
-				System.out.println("\tINCL _"+$2);
-				System.out.println("\tPUSHL _"+$2);
+				String varAddr = getVarAddr($2);
+				System.out.println("\tINCL " + varAddr);
+				System.out.println("\tPUSHL " + varAddr);
 			 }
 	| DEC ID {
-				System.out.println("\tDECL _"+$2);
-				System.out.println("\tPUSHL _"+$2);
+				String varAddr = getVarAddr($2);
+				System.out.println("\tDECL " + varAddr);
+				System.out.println("\tPUSHL " + varAddr);
 			 }	
 	| exp '?' {
 					pRot.push(proxRot); proxRot += 2;
@@ -269,8 +306,20 @@ exp :  NUM  { System.out.println("\tPUSHL $"+$1); }
 					System.out.printf("rot_%02d:\n", (int)pRot.peek()+1);
 					pRot.pop();
 			  }
+	| ID '(' lParamExpOrEmpty ')' {
+									generateFuncCallerSteps($1);
+									System.out.println("\tPUSHL %EAX");
+								  }
 	;							
 
+lParamExpOrEmpty : lParamExp
+				 |
+				 ;
+
+// Step 1 (CALLER): Push function arguments (right to left)
+lParamExp : exp ',' lParamExp
+		  | exp
+		  ;
 
 %%
 
@@ -284,7 +333,9 @@ exp :  NUM  { System.out.println("\tPUSHL $"+$1); }
   private Stack<Integer> pRot = new Stack<Integer>();
   private Stack<Integer> lpRot = new Stack<Integer>();
   private int proxRot = 1;
+  private final int VAR_SIZE_BYTES = 4;
 
+  private String currFuncDecl;
 
   public static int ARRAY = 100;
 
@@ -334,6 +385,87 @@ exp :  NUM  { System.out.println("\tPUSHL $"+$1); }
 
   }
 
+	private String getVarAddr(String varName) {
+		if (currFuncDecl != null) {
+			// we're inside a function, so we should access the variable from
+			// its local symbol table instead of as a global
+			TS_entry funcEntry = ts.pesquisa(currFuncDecl);
+			TS_entry memberEntry = funcEntry.getLocalTS().pesquisa(varName);
+			if (memberEntry != null) {
+				if (memberEntry.getCls() == TS_entry.Class.PARAM) {
+					int idx = funcEntry.getLocalTS().getParamIdx(memberEntry);
+					int totalParams = funcEntry.getLocalTS().getParamsCount();
+					int reversedIdx = totalParams - idx - 1;
+					int offset = 8 + VAR_SIZE_BYTES * reversedIdx;
+					return offset + "(%EBP)";
+				} else if (memberEntry.getCls() == TS_entry.Class.LOCAL_VAR) {
+					int idx = funcEntry.getLocalTS().getLocalVarIdx(memberEntry);
+					int offset = -VAR_SIZE_BYTES * (idx + 1);
+					return offset + "(%EBP)";
+				}
+			}
+		}
+
+		// accessing as a global
+		return "_" + varName;
+	}
+
+	private void generateFuncCallerSteps(String funcName) {
+		// Steps 2 and 3 (CALLER): Push return address to the stack and jump to the function label
+		System.out.println("\tCALL _" + funcName);
+		// Step 11 (CALLER): Deallocate function arguments from the stack
+		int paramsCount = ts.pesquisa(funcName).getLocalTS().getParamsCount();
+		System.out.println("\tADDL $" + (paramsCount * VAR_SIZE_BYTES) + ", %ESP");
+	}
+
+	private void generateFuncCalleePrologueSteps(String funcName) {
+		// Step 4 (CALLEE - PROLOGUE): Save caller's frame (base) pointer in the stack
+		System.out.println("\tPUSHL %EBP");
+		// Step 5 (CALLEE - PROLOGUE): Set callee's frame (base) pointer to the top of the stack ($SP)
+		System.out.println("\tMOVL %ESP, %EBP");
+		// Step 6 (CALLEE - PROLOGUE): Allocate space for local vars
+		int localVarsCount = ts.pesquisa(funcName).getLocalTS().getLocalVarsCount();
+		System.out.println("\tSUBL $" + (localVarsCount * VAR_SIZE_BYTES) + ", %ESP");
+	}
+
+	private void generateFuncCalleeEpilogueSteps() {
+		// Step 8 (CALLEE - EPILOGUE): Deallocate local vars from the stack
+		System.out.println("\tMOVL %EBP, %ESP");
+		// Step 9 (CALLEE - EPILOGUE): Restore caller's frame (base) pointer
+		System.out.println("\tPOPL %EBP");
+		// Step 10 (CALLEE - EPILOGUE): Pop the return address from the stack and jump to it
+		System.out.println("\tRET");
+	}
+
+	private void handleVarDecl(int varType, String varName) {
+		if (currFuncDecl != null) {
+			// the declaration is happening inside a func, so we try to add
+			// the variable to the function's local symbol table
+			TS_entry funcEntry = ts.pesquisa(currFuncDecl);
+			if (funcEntry.getLocalTS().pesquisa(varName) == null)
+				funcEntry.getLocalTS().insert(
+					new TS_entry(varName, varType, TS_entry.Class.LOCAL_VAR)
+				);
+			else
+				yyerror("(sem) variavel >" + varName + "< jah declarada");
+		}
+		else if (ts.pesquisa(varName) != null)
+			yyerror("(sem) variavel >" + varName + "< jah declarada");
+		else
+			ts.insert(new TS_entry(varName, varType, TS_entry.Class.GLOBAL_VAR));
+	}
+
+	private void handleParamDecl(int paramType, String paramName) {
+		TS_entry funcEntry = ts.pesquisa(currFuncDecl);
+		if (funcEntry != null)
+			funcEntry.getLocalTS().insert(
+				new TS_entry(paramName, paramType, TS_entry.Class.PARAM)
+			);
+		else
+			throw new IllegalArgumentException(
+				"set current scope to a non-existent function: " + currFuncDecl
+			);
+	}
 							
 		void gcExpArit(int oparit) {
  				System.out.println("\tPOPL %EBX");

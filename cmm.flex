@@ -86,9 +86,8 @@ do     { return Parser.DO; }
 for    { return Parser.FOR; }
 break   { return Parser.BREAK; }
 continue { return Parser.CONTINUE; }
-
-
-
+func     { return Parser.FUNC; }
+return   { return Parser.RETURN; }
 
 [a-zA-Z]+([a-zA-Z0-9]+)? { yyparser.yylval = new ParserVal(yytext());
             return Parser.ID; }
