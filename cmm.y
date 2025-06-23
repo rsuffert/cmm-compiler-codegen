@@ -59,20 +59,8 @@ lParamDeclOrEmpty : lParamDecl
            		  |
 		   		  ;
 
-lParamDecl : type ID {
-						TS_entry funcEntry = ts.pesquisa(currFuncDecl);
-						if (funcEntry != null)
-							funcEntry.getLocalTS().insert(
-								new TS_entry($2, $1, TS_entry.Class.PARAM)
-							);
-					 }
-           | lParamDecl ',' type ID {
-										TS_entry funcEntry = ts.pesquisa(currFuncDecl);
-										if (funcEntry != null)
-											funcEntry.getLocalTS().insert(
-												new TS_entry($4, $3, TS_entry.Class.PARAM)
-											);
-		   							}
+lParamDecl : type ID                { handleParamDecl($1, $2); }
+           | lParamDecl ',' type ID { handleParamDecl($3, $4); }
 		   ;
 
 returnStmt : RETURN exp ';' {
@@ -459,6 +447,18 @@ lParamExp : exp ',' lParamExp
 			yyerror("(sem) variavel >" + varName + "< jah declarada");
 		else
 			ts.insert(new TS_entry(varName, varType, TS_entry.Class.GLOBAL_VAR));
+	}
+
+	private void handleParamDecl(int paramType, String paramName) {
+		TS_entry funcEntry = ts.pesquisa(currFuncDecl);
+		if (funcEntry != null)
+			funcEntry.getLocalTS().insert(
+				new TS_entry(paramName, paramType, TS_entry.Class.PARAM)
+			);
+		else
+			throw new IllegalArgumentException(
+				"set current scope to a non-existent function: " + currFuncDecl
+			);
 	}
 							
 		void gcExpArit(int oparit) {
