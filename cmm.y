@@ -43,7 +43,7 @@ lFunc : lFunc func
 	  ;
 
 func : FUNC type ID { ts.insert(new TS_entry($3, $2, TS_entry.Class.FUNC)); currFuncDecl = $3; }
-	   '(' lParamDecl ')'
+	   '(' lParamDeclOrEmpty ')'
 	   '{'
 	   		{ System.out.println("_" + $3 + ":"); } // function label
 	   		lVarDecl
@@ -55,19 +55,23 @@ func : FUNC type ID { ts.insert(new TS_entry($3, $2, TS_entry.Class.FUNC)); curr
 	   { currFuncDecl = null; }
 	 ;
 
-lParamDecl : /* empty */
-           | lParamList
-lParamList : type ID {
+lParamDeclOrEmpty : lParamDecl
+           		  |
+		   		  ;
+
+lParamDecl : type ID {
 						TS_entry funcEntry = ts.pesquisa(currFuncDecl);
-						if (funcEntry != null) {
-							funcEntry.getLocalTS().insert(new TS_entry($2, $1, TS_entry.Class.PARAM));
-						}
+						if (funcEntry != null)
+							funcEntry.getLocalTS().insert(
+								new TS_entry($2, $1, TS_entry.Class.PARAM)
+							);
 					 }
-           | lParamList ',' type ID {
+           | lParamDecl ',' type ID {
 										TS_entry funcEntry = ts.pesquisa(currFuncDecl);
-										if (funcEntry != null) {
-											funcEntry.getLocalTS().insert(new TS_entry($4, $3, TS_entry.Class.PARAM));
-										}
+										if (funcEntry != null)
+											funcEntry.getLocalTS().insert(
+												new TS_entry($4, $3, TS_entry.Class.PARAM)
+											);
 		   							}
 
 returnStmt : RETURN exp ';' {
