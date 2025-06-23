@@ -73,6 +73,7 @@ lParamDecl : type ID {
 												new TS_entry($4, $3, TS_entry.Class.PARAM)
 											);
 		   							}
+		   ;
 
 returnStmt : RETURN exp ';' {
 								System.out.println("\tPOPL %EAX"); // function return val
