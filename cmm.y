@@ -8,6 +8,7 @@
 
 %token ID, INT, FLOAT, BOOL, NUM, LIT, VOID, MAIN, READ, WRITE, IF, ELSE
 %token WHILE,TRUE, FALSE, IF, ELSE, DO, FOR, CONTINUE, BREAK
+%token FUNC, RETURN
 
 %token EQ, LEQ, GEQ, NEQ 
 %token AND, OR
@@ -33,18 +34,63 @@
 
 %%
 
-prog : { geraInicio(); } dList mainF { geraAreaDados(); geraAreaLiterais(); } ;
+prog : { geraInicio(); } lVarDecl lFunc mainF { geraAreaDados(); geraAreaLiterais(); } ;
+
+lFunc : lFunc func
+	  |
+	  ;
+
+func : FUNC type ID '(' lParamDecl ')'
+	   '{'
+	   		{ System.out.println("_" + $2 + ":"); } // function label
+	   		lVarDecl
+	   		{ 
+				// Step 4 (CALLEE - PROLOGUE): Save caller's frame (base) pointer in the stack
+				System.out.println("\tPUSHL %EBP");
+				// Step 5 (CALLEE - PROLOGUE): Set callee's frame (base) pointer to the top of the stack ($SP)
+				System.out.println("\tMOVL %ESP, %EBP");
+				// Step 6 (CALLEE - PROLOGUE): Allocate space for local vars
+				int localVarsCount = funcToLocalVarsCount.get($2);
+				System.out.println("\tSUBL $" + (localVarsCount * VAR_SIZE_BYTES) + ", %ESP");
+			}
+			// Step 7 (CALLEE): Execute function body
+	   		lcmd
+			returnStmt
+	   '}'
+	 ;
+
+lParamDecl : lParamDecl type ID ','
+	   | type ID
+	   |
+	   ;
+
+returnStmt : RETURN exp ';' {
+								System.out.println("\tPOPL %EAX"); // function return val
+								// Step 8 (CALLEE - EPILOGUE): Deallocate local vars from the stack
+								System.out.println("\tMOVL %EBP, %ESP");
+								// Step 9 (CALLEE - EPILOGUE): Restore caller's frame (base) pointer
+								System.out.println("\tPOPL %EBP");
+								// Step 10: Pop the return address from the stack and jump to it
+								System.out.println("\tRET");
+							}
+		   ;
 
 mainF : VOID MAIN '(' ')'   { System.out.println("_start:"); }
         '{' lcmd  { geraFinal(); } '}'
          ; 
 
-dList : decl dList | ;
+lVarDecl : decl lVarDecl | ;
 
-decl : type ID ';' {  TS_entry nodo = ts.pesquisa($2);
-    	                if (nodo != null) 
-                            yyerror("(sem) variavel >" + $2 + "< jah declarada");
-                        else ts.insert(new TS_entry($2, $1)); }
+decl : type ID ';' {  	TS_entry nodo = ts.pesquisa($2);
+						if (nodo != null) 
+							yyerror("(sem) variavel >" + $2 + "< jah declarada");
+						else ts.insert(new TS_entry($2, $1)); 
+
+						funcToLocalVarsCount.put(
+							key,
+							funcToLocalVarsCount.getOrDefault(key, 0) + 1
+						);
+				   }
       ;
 
 type : INT    { $$ = INT; }
@@ -269,8 +315,21 @@ exp :  NUM  { System.out.println("\tPUSHL $"+$1); }
 					System.out.printf("rot_%02d:\n", (int)pRot.peek()+1);
 					pRot.pop();
 			  }
+	| ID '(' lParamExp ')' {	
+								// Steps 2 and 3 (CALLER): Push return address to the stack and jump to the function label
+								System.out.println("\tCALL _" + $1);
+								// Step 11 (CALLER): Deallocate function arguments from the stack
+								int localVarsCount = funcToLocalVarsCount.get($1);
+								System.out.println("\tADDL $" + (localVarsCount * VAR_SIZE_BYTES) + ", %ESP");
+						   }
+	|
 	;							
 
+// Step 1 (CALLER): Push function arguments (right to left)
+lParamExp : exp ',' lParamExp { System.out.println("\tPUSHL $1"); }
+		  | exp               { System.out.println("\tPUSHL $1"); }
+		  |
+		  ;
 
 %%
 
@@ -284,7 +343,8 @@ exp :  NUM  { System.out.println("\tPUSHL $"+$1); }
   private Stack<Integer> pRot = new Stack<Integer>();
   private Stack<Integer> lpRot = new Stack<Integer>();
   private int proxRot = 1;
-
+  private Map<String, Integer> funcToLocalVarsCount = new HashMap<>();
+  private final int VAR_SIZE_BYTES = 4;
 
   public static int ARRAY = 100;
 
