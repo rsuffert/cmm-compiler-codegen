@@ -16,7 +16,6 @@ public class TS_entry
    // Functions
    private TabSimb localTS;
 
-   // Constructor for global variables and functions
    public TS_entry(String umId, int umTipo, Class cls) {
       this.id = umId;
       this.tipo = umTipo; 

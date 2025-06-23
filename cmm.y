@@ -83,24 +83,8 @@ mainF : VOID MAIN '(' ')'   { System.out.println("_start:"); }
 
 lVarDecl : decl lVarDecl | ;
 
-decl : type ID ';' {
-						if (currFuncDecl != null) {
-							// the declaration is happening inside a func, so we try to add
-							// the variable to the function's local symbol table
-							TS_entry funcEntry = ts.pesquisa(currFuncDecl);
-							if (funcEntry.getLocalTS().pesquisa($2) == null)
-								funcEntry.getLocalTS().insert(
-									new TS_entry($2, $1, TS_entry.Class.LOCAL_VAR)
-								);
-							else
-								yyerror("(sem) variavel >" + $2 + "< jah declarada");
-						}
-						else if (ts.pesquisa($2) != null)
-							yyerror("(sem) variavel >" + $2 + "< jah declarada");
-						else
-							ts.insert(new TS_entry($2, $1, TS_entry.Class.GLOBAL_VAR));
-				   }
-      ;
+decl : type ID ';' { handleVarDecl($1, $2); }
+     ;
 
 type : INT    { $$ = INT; }
      | FLOAT  { $$ = FLOAT; }
@@ -452,6 +436,24 @@ lParamExp : exp ',' lParamExp
 		System.out.println("\tPOPL %EBP");
 		// Step 10 (CALLEE - EPILOGUE): Pop the return address from the stack and jump to it
 		System.out.println("\tRET");
+	}
+
+	private void handleVarDecl(int varType, String varName) {
+		if (currFuncDecl != null) {
+			// the declaration is happening inside a func, so we try to add
+			// the variable to the function's local symbol table
+			TS_entry funcEntry = ts.pesquisa(currFuncDecl);
+			if (funcEntry.getLocalTS().pesquisa(varName) == null)
+				funcEntry.getLocalTS().insert(
+					new TS_entry(varName, varType, TS_entry.Class.LOCAL_VAR)
+				);
+			else
+				yyerror("(sem) variavel >" + varName + "< jah declarada");
+		}
+		else if (ts.pesquisa(varName) != null)
+			yyerror("(sem) variavel >" + varName + "< jah declarada");
+		else
+			ts.insert(new TS_entry(varName, varType, TS_entry.Class.GLOBAL_VAR));
 	}
 							
 		void gcExpArit(int oparit) {
