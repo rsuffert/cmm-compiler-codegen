@@ -1,3 +1,4 @@
+int res;
 int e;
 int f;
 
@@ -13,11 +14,11 @@ func int twoParams(int a, int b) {
     write("d: ", d);
     write("e: ", e);
     write("f: ", f);
-    return 0;
+    return f + c * d;
 }
 
 func void main() {
     f = 50;
-    twoParams(2, 3);
-    write("End of program!");
+    res = twoParams(2, 3);
+    write("twoParams result: ", res);
 }
