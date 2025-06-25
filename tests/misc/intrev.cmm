@@ -2,7 +2,7 @@ int n;
 int reversed;
 int digit;
 
-void main() {
+func void main() {
     n = 1234;
     reversed = 0;
 

@@ -2,7 +2,7 @@ int i;
 int n;
 bool isPrime;
 
-void main() {
+func void main() {
     n = 29;
     isPrime = true;
 

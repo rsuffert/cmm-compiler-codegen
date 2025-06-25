@@ -3,7 +3,7 @@ int j;
 int k;
 int f;
 
-void main() {
+func void main() {
     f = 0;
     for(i=0; i<5; i++) {
         for (j=0; j<5; j++) {

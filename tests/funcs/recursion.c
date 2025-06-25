@@ -7,10 +7,10 @@ int add(int a, int b) {
 
     if (b == 0) {
         res = a;
-    } else {
-        res = add(++a, --b);
+        return res;
     }
-
+    
+    res = add(++a, --b);
     return res;
 }
 

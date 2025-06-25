@@ -1,7 +1,7 @@
 int n1;
 int n2;
 
-void main() {
+func void main() {
     n1 = 48;
     n2 = 18;
 

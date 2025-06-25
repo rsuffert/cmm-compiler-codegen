@@ -1,6 +1,6 @@
 int n;
 
-void main() {
+func void main() {
     n = 13;
 
     while(n != 1) {

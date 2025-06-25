@@ -50,7 +50,6 @@ func : FUNC type ID { ts.insert(new TS_entry($3, $2, TS_entry.Class.FUNC)); curr
 	   		{ generateFuncCalleePrologueSteps($3); }
 			// Step 7 (CALLEE): Execute function body
 	   		lcmd
-			returnStmt
 	   '}'
 	   { currFuncDecl = null; }
 	 ;
@@ -63,14 +62,7 @@ lParamDecl : type ID                { handleParamDecl($1, $2); }
            | lParamDecl ',' type ID { handleParamDecl($3, $4); }
 		   ;
 
-returnStmt : RETURN exp ';' {
-								System.out.println("\tPOPL %EAX"); // function return val
-								generateFuncCalleeEpilogueSteps();
-							}
-		   | RETURN ';' { generateFuncCalleeEpilogueSteps(); }
-		   ;
-
-mainF : VOID MAIN '(' ')'   { System.out.println("_start:"); }
+mainF : FUNC VOID MAIN '(' ')'   { System.out.println("_start:"); }
         '{' lcmd  { geraFinal(); } '}'
          ; 
 
@@ -163,6 +155,12 @@ cmd :  exp { System.out.println("\tPOPL %EAX"); } ';' // permitir qualquer expre
 		//limpa a pilha para o break e continue 
 		lpRot.pop();
 	 }
+
+	| RETURN exp ';' {
+						System.out.println("\tPOPL %EAX"); // function return val
+						generateFuncCalleeEpilogueSteps();
+					 }
+	| RETURN ';' { generateFuncCalleeEpilogueSteps(); }
 							
 			| IF '(' exp {	
 											pRot.push(proxRot);  proxRot += 2;
@@ -386,28 +384,30 @@ lParamExp : exp ',' lParamExp
   }
 
 	private String getVarAddr(String varName) {
-		if (currFuncDecl != null) {
-			// we're inside a function, so we should access the variable from
-			// its local symbol table instead of as a global
-			TS_entry funcEntry = ts.pesquisa(currFuncDecl);
-			TS_entry memberEntry = funcEntry.getLocalTS().pesquisa(varName);
-			if (memberEntry != null) {
-				if (memberEntry.getCls() == TS_entry.Class.PARAM) {
-					int idx = funcEntry.getLocalTS().getParamIdx(memberEntry);
-					int totalParams = funcEntry.getLocalTS().getParamsCount();
-					int reversedIdx = totalParams - idx - 1;
-					int offset = 8 + VAR_SIZE_BYTES * reversedIdx;
-					return offset + "(%EBP)";
-				} else if (memberEntry.getCls() == TS_entry.Class.LOCAL_VAR) {
-					int idx = funcEntry.getLocalTS().getLocalVarIdx(memberEntry);
-					int offset = -VAR_SIZE_BYTES * (idx + 1);
-					return offset + "(%EBP)";
-				}
-			}
-		}
+		if (currFuncDecl == null) 
+			return "_" + varName; // accessing as a global
 
-		// accessing as a global
-		return "_" + varName;
+		TS_entry funcEntry = ts.pesquisa(currFuncDecl);
+		
+		TS_entry memberEntry = funcEntry.getLocalTS().pesquisa(varName);
+		if (memberEntry == null)
+			return "_" + varName; // accessing as a global
+		
+		int offset;
+		if (memberEntry.getCls() == TS_entry.Class.LOCAL_VAR) {
+			int idx = funcEntry.getLocalTS().getLocalVarIdx(memberEntry);
+			offset = -VAR_SIZE_BYTES * (idx + 1);
+		}
+		else if (memberEntry.getCls() == TS_entry.Class.PARAM) {
+			int idx = funcEntry.getLocalTS().getParamIdx(memberEntry);
+			int totalParams = funcEntry.getLocalTS().getParamsCount();
+			int reversedIdx = totalParams - idx - 1;
+			offset = 8 + VAR_SIZE_BYTES * reversedIdx;
+		}
+		else
+			return "_" + varName; // accessing as a global
+
+		return offset + "(%EBP)";
 	}
 
 	private void generateFuncCallerSteps(String funcName) {
@@ -442,29 +442,36 @@ lParamExp : exp ',' lParamExp
 			// the declaration is happening inside a func, so we try to add
 			// the variable to the function's local symbol table
 			TS_entry funcEntry = ts.pesquisa(currFuncDecl);
-			if (funcEntry.getLocalTS().pesquisa(varName) == null)
-				funcEntry.getLocalTS().insert(
-					new TS_entry(varName, varType, TS_entry.Class.LOCAL_VAR)
-				);
-			else
+			if (funcEntry.getLocalTS().pesquisa(varName) != null) {
 				yyerror("(sem) variavel >" + varName + "< jah declarada");
+				return;
+			}
+
+			funcEntry.getLocalTS().insert(
+				new TS_entry(varName, varType, TS_entry.Class.LOCAL_VAR)
+			);
+			return;
 		}
-		else if (ts.pesquisa(varName) != null)
+		
+		// if not inside a function, try adding to the global symbol table
+		if (ts.pesquisa(varName) != null) {
 			yyerror("(sem) variavel >" + varName + "< jah declarada");
-		else
-			ts.insert(new TS_entry(varName, varType, TS_entry.Class.GLOBAL_VAR));
+			return;
+		}
+		ts.insert(new TS_entry(varName, varType, TS_entry.Class.GLOBAL_VAR));
 	}
 
 	private void handleParamDecl(int paramType, String paramName) {
 		TS_entry funcEntry = ts.pesquisa(currFuncDecl);
-		if (funcEntry != null)
-			funcEntry.getLocalTS().insert(
-				new TS_entry(paramName, paramType, TS_entry.Class.PARAM)
-			);
-		else
+
+		if (funcEntry == null)
 			throw new IllegalArgumentException(
 				"set current scope to a non-existent function: " + currFuncDecl
 			);
+		
+		funcEntry.getLocalTS().insert(
+			new TS_entry(paramName, paramType, TS_entry.Class.PARAM)
+		);
 	}
 							
 		void gcExpArit(int oparit) {
