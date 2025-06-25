@@ -4,7 +4,7 @@ int a;
 int b;
 int c;
 
-void main() {
+func void main() {
    write("Exemplos de escrita");
    write(" ");
    write("duzentos: ", 200);

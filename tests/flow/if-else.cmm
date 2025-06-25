@@ -2,7 +2,7 @@ int a;
 int b;
 bool greater;
 
-void main() {
+func void main() {
     a = 10;
     b = 11;
 

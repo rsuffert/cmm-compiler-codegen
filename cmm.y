@@ -70,7 +70,7 @@ returnStmt : RETURN exp ';' {
 		   | RETURN ';' { generateFuncCalleeEpilogueSteps(); }
 		   ;
 
-mainF : VOID MAIN '(' ')'   { System.out.println("_start:"); }
+mainF : FUNC VOID MAIN '(' ')'   { System.out.println("_start:"); }
         '{' lcmd  { geraFinal(); } '}'
          ; 
 

@@ -1,7 +1,7 @@
 int a;
 int b;
 
-void main() {
+func void main() {
     a = 0;
     b = 0;
     do {

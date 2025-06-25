@@ -1,7 +1,7 @@
 $TRACE_OFF
 
 
-void main() {
+func void main() {
 
 }
 

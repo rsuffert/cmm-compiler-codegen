@@ -2,7 +2,7 @@ int a;
 int b; 
 int c;
 
-void main() {  
+func void main() {  
     a = 1;
     b = a + 2;
     c = a + 3 * b + 4;

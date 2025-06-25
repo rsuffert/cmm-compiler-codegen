@@ -4,7 +4,7 @@ int sum;
 int count;
 int n;
 
-void main() {
+func void main() {
     n = 3;
     num = 2;
     count = 0;

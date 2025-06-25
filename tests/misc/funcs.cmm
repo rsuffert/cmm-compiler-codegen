@@ -16,7 +16,7 @@ func int twoParams(int a, int b) {
     return 0;
 }
 
-void main() {
+func void main() {
     f = 50;
     twoParams(2, 3);
     write("End of program!");

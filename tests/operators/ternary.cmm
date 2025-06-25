@@ -3,7 +3,7 @@ int b;
 int c;
 int d;
 
-void main() {
+func void main() {
     a = 7;
     b = 12;
     c = (a > b) ? a : b;

@@ -3,7 +3,7 @@ int original;
 int reversed;
 int digit;
 
-void main() {
+func void main() {
     n = 123321;
     original = n;
     reversed = 0;
