@@ -50,7 +50,6 @@ func : FUNC type ID { ts.insert(new TS_entry($3, $2, TS_entry.Class.FUNC)); curr
 	   		{ generateFuncCalleePrologueSteps($3); }
 			// Step 7 (CALLEE): Execute function body
 	   		lcmd
-			returnStmt
 	   '}'
 	   { currFuncDecl = null; }
 	 ;
@@ -61,13 +60,6 @@ lParamDeclOrEmpty : lParamDecl
 
 lParamDecl : type ID                { handleParamDecl($1, $2); }
            | lParamDecl ',' type ID { handleParamDecl($3, $4); }
-		   ;
-
-returnStmt : RETURN exp ';' {
-								System.out.println("\tPOPL %EAX"); // function return val
-								generateFuncCalleeEpilogueSteps();
-							}
-		   | RETURN ';' { generateFuncCalleeEpilogueSteps(); }
 		   ;
 
 mainF : FUNC VOID MAIN '(' ')'   { System.out.println("_start:"); }
@@ -163,6 +155,12 @@ cmd :  exp { System.out.println("\tPOPL %EAX"); } ';' // permitir qualquer expre
 		//limpa a pilha para o break e continue 
 		lpRot.pop();
 	 }
+
+	| RETURN exp ';' {
+						System.out.println("\tPOPL %EAX"); // function return val
+						generateFuncCalleeEpilogueSteps();
+					 }
+	| RETURN ';' { generateFuncCalleeEpilogueSteps(); }
 							
 			| IF '(' exp {	
 											pRot.push(proxRot);  proxRot += 2;
